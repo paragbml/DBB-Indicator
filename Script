@@ -1,0 +1,44 @@
+// Keltner Channel + RSI
+
+study(title="Kertnel + RSI Bitcoin Futures Trading [luca_badoer]", overlay=false)
+offset = 1
+lengthMiddle = input(14,  title="MiddleEMA")
+channelATR = input(13, title="Channel wall ATR")
+channelWidth = input(0.3, title = "Channel Width")
+showBarColor = input(true, title="Highlight Bear/Bull reversals?", type=bool)
+
+// rsi manual
+change = change(close)
+gain = change >= 0 ? change : 0.0
+loss = change < 0 ? (-1) * change : 0.0
+avgGain = rma(gain, lengthMiddle)
+avgLoss = rma(loss, lengthMiddle)
+rs = avgGain / avgLoss
+rsi_14 = 100 - (100 / (1 + rs))
+
+// keltner channel calculation
+
+rsi_seven = rsi(close,7)
+rsi_keltner = ema(rsi_14,lengthMiddle)
+rsi_keltner_previous = rsi(close[1],lengthMiddle)
+current_period = rsi(close,lengthMiddle)
+abs_current_period_high = abs(rsi_keltner - rsi_keltner_previous)
+
+true_range = max(current_period, abs_current_period_high)
+
+absolute_true_range = rma(true_range, channelATR)
+upperVal = rsi_keltner + channelWidth * absolute_true_range
+lowerVal = rsi_keltner - channelWidth * absolute_true_range
+
+// display
+
+rsi_line = plot(rsi_seven, style=line, linewidth=3, color = aqua)
+middle_line = plot(rsi_keltner, style=line, linewidth=3, color=white)
+upper_line = plot(upperVal, color=green)
+lower_line = plot(lowerVal, color = red)
+fill(upper_line, lower_line, color=white, transp=90)
+band1 = hline(78.6, color=orange,linestyle=dotted)
+band0 = hline(23.6, color=purple,linestyle=dotted)
+hline(61.8, color=purple,linestyle=dotted)
+hline(38.2, color=orange,linestyle=dotted)
+hline(50, color=green,linestyle=solid)
